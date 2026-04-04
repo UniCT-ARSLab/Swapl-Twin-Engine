@@ -1,0 +1,119 @@
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    list-style: none;
+    outline: none;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-top: #f5f9ff;
+    --bg-bottom: #d6e6f7;
+    --shape-a: rgba(33, 96, 168, 0.15);
+    --shape-b: rgba(19, 151, 140, 0.16);
+    --panel-bg: rgba(255, 255, 255, 0.84);
+    --panel-border: rgba(26, 72, 121, 0.22);
+    --panel-shadow: 0 16px 42px rgba(14, 41, 70, 0.20);
+    --text-main: #17334b;
+    --text-muted: #45627e;
+    --accent: #0f8f8d;
+    --accent-2: #246fb6;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    position: relative;
+    font-family: "Trebuchet MS", "Gill Sans", "Segoe UI", sans-serif;
+    font-size: 14px;
+    color: var(--text-main);
+    background: linear-gradient(148deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+}
+
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(6px);
+}
+
+body::before {
+    top: -180px;
+    right: -140px;
+    background: radial-gradient(circle, var(--shape-a) 0%, rgba(33, 96, 168, 0) 70%);
+}
+
+body::after {
+    bottom: -200px;
+    left: -110px;
+    background: radial-gradient(circle, var(--shape-b) 0%, rgba(19, 151, 140, 0) 72%);
+}
+
+.app-shell {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+    grid-template-rows: 74px minmax(0, 1fr);
+    gap: 16px;
+    width: 100%;
+    height: 100%;
+    padding: 18px;
+}
+
+a {
+    text-decoration: none;
+    color: var(--accent-2);
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+a.disabled {
+    pointer-events: none;
+    cursor: default;
+    color: #8ba1b8;
+}
+
+button {
+    font-family: inherit;
+    font-size: 13px;
+}
+
+@keyframes surface-reveal {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 980px) {
+    html, body {
+        height: auto;
+        min-height: 100%;
+        overflow-y: auto;
+    }
+
+    .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: 74px auto minmax(360px, 1fr);
+        min-height: 100vh;
+        height: auto;
+    }
+}
+
+

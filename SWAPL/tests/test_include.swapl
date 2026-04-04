@@ -1,0 +1,18 @@
+
+model "base_agent";
+
+roleset ( { name : "main" } ) ;
+agentset ( { name : "main_agent", role : "main" } );
+
+import "control";
+
+behaviour main {
+    with all {
+        var c1 = instance pid_controller;
+        var c2 = instance pid_controller;
+        c1.make(1,2,3);
+        c2.make(3,4,5);
+        print(c1);
+        print(c2);
+    }
+}

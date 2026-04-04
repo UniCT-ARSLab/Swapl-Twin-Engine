@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dxqc7mvbw5xhx"]
+
+[ext_resource type="Script" uid="uid://cxbap8hj5y700" path="res://sensore.gd" id="1_pu7ul"]
+
+[node name="Sensore" type="Node3D"]
+script = ExtResource("1_pu7ul")

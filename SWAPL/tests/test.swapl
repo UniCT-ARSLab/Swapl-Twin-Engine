@@ -1,0 +1,62 @@
+
+model "base_agent";
+
+roleset ( { name : "leader" },
+          { name : "follower" } );
+
+agentset ( { name : "main_agent", role : "leader" },
+           { name : "another", role : "follower" },
+           { name : "another_one", role : "follower" } );
+
+environment ( { center : 0 } );
+
+attributes ( variable );
+
+behaviour test {
+  with all {
+    print("hello");
+  }
+}
+
+function my_fun(a,b,c) {
+    var x = a*b+c;
+    return x;
+}
+
+behaviour main {
+  with one {
+    var c = 3 + 5;
+    var d = c + 10;
+    print(agent, c, d);
+    agent.variable = 5;
+    print(agent.variable);
+  }
+  #
+  with all {
+    var a = 3 + 2;
+    print("ciao", a, agent.name, agent.role, agent);
+    if (a == 4) {
+      print("CINQUE!");
+      print("sei sette otto!");
+    }
+    else {
+      print("ELSE!!");
+    }
+  }
+  #
+  with all {
+      agent.variable = 1;#Random.unform(0,1);
+      print("final", agent.variable);
+      var a = 0;
+      while (a < 10) {
+          print(agent.name, a);
+          a = a + 1;
+      }
+  }
+  with one {
+      var x = my_fun(1,2,3);
+      print(x, Math.pi);
+      print(all);
+  }
+}
+

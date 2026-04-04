@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+
+DigitalTwin/.godot/
+DigitalTwin/.import/
+DigitalTwin/**/*.tmp
