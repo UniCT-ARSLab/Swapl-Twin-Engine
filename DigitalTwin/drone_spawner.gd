@@ -22,10 +22,14 @@ func spawn_drones(count: int):
 		drone.global_position = pos
 		drone.name = "Drone_%d" % i
 		
+		var actual_drone = drone.get_node("drone")
+		if actual_drone:
+			actual_drone.set_meta("swapl_drone_id", i)
+			actual_drone.set_meta("swapl_drone_name", drone.name)
+		
 		add_child(drone)
 		active_drones.append(drone)
 		
-		var actual_drone = drone.get_node("drone")  
 		if actual_drone:
 			actual_drone.add_to_group("drones")
 		

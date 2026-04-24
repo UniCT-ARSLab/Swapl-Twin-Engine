@@ -154,7 +154,15 @@ func update_drone_positions(drones_data: Array):
 		
 		if drone_id >= 0 and drone_id < drones.size():
 			var drone = drones[drone_id]
-			var target_pos = Vector3(target_x, drone.z_target, target_z)
+			var target_altitude = drone.z_target
+			if drone_data.has("altitude"):
+				var altitude_value = drone_data.get("altitude")
+				if altitude_value != null:
+					target_altitude = float(altitude_value)
+					if drone.has_method("set_z_target"):
+						drone.set_z_target(target_altitude, false)
+			
+			var target_pos = Vector3(target_x, target_altitude, target_z)
 			drone.set_movement_target(target_pos)
 
 func clear_all_drones():

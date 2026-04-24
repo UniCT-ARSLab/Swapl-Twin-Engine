@@ -1,0 +1,55 @@
+model "vtol_uav";
+
+roleset ( { name : "leader" },
+          { name : "follower" } );
+
+agentset ( { name : "one", role : "leader" },
+           { spawn : 4, role : "follower" } );
+
+environment ( { left: -120, top: -120, right: 120, bottom: 120, z_bottom : 0, z_top: 100 } );
+
+behaviour main {
+  with roles("leader") {
+    agent.x = 0;
+    agent.y = 0;
+    agent.z = 20;
+    agent.yaw = 0;
+    agent.image = "arrow_red.png";
+  }
+
+  with roles("follower") {
+    agent.z = 20;
+    agent.yaw = 0;
+    agent.image = "arrow_white.png";
+  }
+
+  with roles("leader") {
+    var t = 0;
+    while (1) {
+      agent.z = 20 + 0.6 * Math.sin(t);
+      agent.yaw = t / 4;
+      t = t + Math.pi / 30;
+      wait(0.3);
+    }
+  }
+  |
+  with roles("follower") {
+      var radius = 8;
+      var base_angle;
+      if (agent.id == 0) { base_angle = -Math.pi / 2; }
+      if (agent.id == 1) { base_angle = 0; }
+      if (agent.id == 2) { base_angle = Math.pi / 2; }
+      if (agent.id == 3) { base_angle = Math.pi; }
+
+      var i_angle = 0;
+      while (1) {
+          var angle = base_angle + i_angle;
+          agent.x = radius * Math.cos(angle);
+          agent.y = radius * Math.sin(angle);
+          agent.z = 20 + 1.0 * Math.sin((2 * i_angle) + base_angle);
+          agent.yaw = angle;
+          i_angle = i_angle + Math.pi / 100;
+          wait(0.3);
+      }
+  }
+}

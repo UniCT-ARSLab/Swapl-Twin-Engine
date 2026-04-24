@@ -248,6 +248,30 @@ class SWAPLWebSocketAlertServer:
         self.loop = None
         self.server = None
         self.stats = WS_STATS["alert"]
+
+    def _resolve_drone_id(self, drone_name, drone_id=None):
+        if drone_id is not None:
+            try:
+                return int(drone_id)
+            except (TypeError, ValueError):
+                pass
+
+        if isinstance(drone_name, str):
+            match = re.search(r"(\d+)$", drone_name)
+            if match:
+                return int(match.group(1))
+
+            agent_names = list(self.program.get_agents().keys())
+            if drone_name in self.program.get_agents():
+                return agent_names.index(drone_name)
+
+        return None
+
+    def _get_agent_by_drone_id(self, drone_id):
+        agents = list(self.program.get_agents().items())
+        if drone_id is None or drone_id < 0 or drone_id >= len(agents):
+            raise KeyError(f"Unknown drone id '{drone_id}'")
+        return agents[drone_id]
     
     async def handle_client(self, websocket):
         """Gestisce un client WebSocket connesso (droni Godot)"""
@@ -278,16 +302,11 @@ class SWAPLWebSocketAlertServer:
                 
                 # Passa l'alert all'agente SWAPL
                 try:
-                    drone_id = None
-                    if isinstance(drone_name, str):
-                        match = re.search(r"(\d+)$", drone_name)
-                        if match:
-                            drone_id = int(match.group(1))
+                    drone_id = self._resolve_drone_id(drone_name, data.get("drone_id"))
                     if drone_id is None:
                         raise ValueError(f"Invalid drone name '{drone_name}'")
-
-                    agent_name = "leader" if drone_id == 0 else f"dynamic-{drone_id - 1}"
-                    agent = self.program.get_agent(agent_name)
+                    
+                    agent_name, agent = self._get_agent_by_drone_id(drone_id)
                     
                     if agent and hasattr(agent.get_attribute('object'), 'on_collision_alert'):
                         agent.get_attribute('object').on_collision_alert(data)
@@ -381,13 +400,29 @@ class SWAPLWebSocketPositionServer:
                     except:
                         x = 0.0
                         y = 0.0
-                    
-                    drones_data.append({
+
+                    altitude = None
+                    for attr_name in ("altitude", "z"):
+                        try:
+                            altitude = agent.get_attribute(attr_name).get()
+                            break
+                        except Exception:
+                            continue
+
+                    drone_payload = {
                         "id": i,
                         "name": f"Drone_{i}",
                         "x": round(float(x), 2),
                         "z": round(float(y), 2) 
-                    })
+                    }
+
+                    if altitude is not None:
+                        try:
+                            drone_payload["altitude"] = round(float(altitude), 2)
+                        except (TypeError, ValueError):
+                            pass
+
+                    drones_data.append(drone_payload)
                 
                 self.seq += 1
                 position_msg = {

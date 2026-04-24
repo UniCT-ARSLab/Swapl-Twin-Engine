@@ -117,8 +117,41 @@ func _physics_process(delta):
 		
 		apply_stabilization_and_tilt(delta)
 
+func _get_swapl_drone_identity() -> Dictionary:
+	var parent_name = get_parent_node_3d().name
+	var drone_name = parent_name
+	
+	if has_meta("swapl_drone_name"):
+		drone_name = str(get_meta("swapl_drone_name"))
+	
+	if has_meta("swapl_drone_id"):
+		return {
+			"valid": true,
+			"id": int(get_meta("swapl_drone_id")),
+			"name": drone_name
+		}
+	
+	if parent_name.begins_with("Drone_"):
+		var suffix = parent_name.trim_prefix("Drone_")
+		if suffix.is_valid_int():
+			return {
+				"valid": true,
+				"id": int(suffix),
+				"name": parent_name
+			}
+	
+	return {
+		"valid": false,
+		"id": -1,
+		"name": drone_name
+	}
+
 func connect_websocket():
 	"""Connetti al WebSocket server SWAPL"""
+	var identity = _get_swapl_drone_identity()
+	if not identity.get("valid", false):
+		return
+	
 	if ws_client:
 		ws_client = null
 	
@@ -126,9 +159,9 @@ func connect_websocket():
 	var err = ws_client.connect_to_url(ws_url)
 	
 	if err == OK:
-		print(" [%s] Connecting to WebSocket: %s" % [get_parent_node_3d().name, ws_url])
+		print(" [%s] Connecting to WebSocket: %s" % [identity.get("name", get_parent_node_3d().name), ws_url])
 	else:
-		print(" [%s] Failed to connect WebSocket: %d" % [get_parent_node_3d().name, err])
+		print(" [%s] Failed to connect WebSocket: %d" % [identity.get("name", get_parent_node_3d().name), err])
 
 func update_websocket(delta: float):
 	"""Aggiorna lo stato del WebSocket"""
@@ -178,7 +211,11 @@ func send_collision_alert(distance: float, object_name: String):
 		print("⚠️ [%s] WebSocket not connected, cannot send alert" % get_parent_node_3d().name)
 		return
 	
-	var drone_name = get_parent_node_3d().name
+	var identity = _get_swapl_drone_identity()
+	if not identity.get("valid", false):
+		return
+	
+	var drone_name = identity.get("name", get_parent_node_3d().name)
 	alert_seq += 1
 	var ts = Time.get_unix_time_from_system() + float(Time.get_ticks_msec() % 1000) / 1000.0
 	var alert_data = {
@@ -186,6 +223,7 @@ func send_collision_alert(distance: float, object_name: String):
 	"seq": alert_seq,
 	"ts": Time.get_unix_time_from_system(),  
 	"drone": drone_name,
+	"drone_id": identity.get("id", -1),
 	"distance": snapped(distance, 0.01),
 	"object": object_name
 	}
@@ -305,8 +343,13 @@ func get_pose():
 func get_velocity():
 	return [linear_velocity, angular_velocity]
 
-func set_z_target(new_target: float):
+func set_z_target(new_target: float, log_change: bool = true):
+	if is_equal_approx(z_target, new_target):
+		return
+	
 	z_target = new_target
+	if not log_change:
+		return
 	print("✈️ Drone: New altitude target set to %.2f m" % new_target)
 
 func highlight_drone():
